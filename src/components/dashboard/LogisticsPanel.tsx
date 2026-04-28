@@ -41,9 +41,13 @@ export function LogisticsPanel({ liveState }: { liveState: ShipmentState }) {
   const [selected, setSelected] = useState<string>(seed[0].id);
 
   // Bind first shipment to the live simulation so the table reflects real-time data
+  const liveStatus: Status =
+    liveState.status === "on-time" ? "in-transit" :
+    liveState.status === "rerouted" ? "in-transit" :
+    (liveState.status as Status);
   const shipments: Shipment[] = seed.map((s, i) =>
     i === 0
-      ? { ...s, status: liveState.status as Status, progress: Math.round(liveState.progress * 100), etaHours: Math.round(liveState.etaHours) }
+      ? { ...s, status: liveStatus, progress: Math.round(liveState.progress * 100), etaHours: Math.round(liveState.etaDays * 24) }
       : s
   );
 
