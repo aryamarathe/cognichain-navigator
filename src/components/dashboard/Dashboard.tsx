@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Truck, DollarSign, Gauge, ShieldAlert, Sparkles } from "lucide-react";
 import { StatCard } from "./StatCard";
 import { ShipmentMap } from "./ShipmentMap";
@@ -6,9 +6,20 @@ import { DisruptionPanel } from "./DisruptionPanel";
 import { ForecastChart } from "./ForecastChart";
 import { InventoryPanel } from "./InventoryPanel";
 import { ActivityFeed } from "./ActivityFeed";
+import { useShipmentSimulation } from "@/hooks/useShipmentSimulation";
 
 export function Dashboard() {
   const [rerouted, setRerouted] = useState(false);
+  const { state, alerts } = useShipmentSimulation(rerouted);
+  const [clock, setClock] = useState("");
+  useEffect(() => {
+    const update = () => setClock(new Date().toUTCString().slice(17, 25));
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const atRisk = state.status === "at-risk" || state.status === "delayed" ? 1 : 0;
 
   return (
     <div className="min-h-screen animate-fade-in">
@@ -46,7 +57,7 @@ export function Dashboard() {
             <p className="text-sm text-muted-foreground">Real-time visibility across logistics, inventory & AI forecasting</p>
           </div>
           <div className="text-xs text-muted-foreground font-mono">
-            UTC {new Date().toUTCString().slice(17, 25)} · 4 active shipments · 1 advisory
+            UTC <span suppressHydrationWarning>{clock || "--:--:--"}</span> · 4 active shipments · {atRisk + 1} advisory
           </div>
         </div>
 
@@ -55,12 +66,19 @@ export function Dashboard() {
           <StatCard label="Active Shipments" value="247" delta="+12 today" trend="up" icon={Truck} accent="primary" />
           <StatCard label="Logistics Cost (MTD)" value="$1.84M" delta="-8.2% vs forecast" trend="up" icon={DollarSign} accent="secondary" />
           <StatCard label="On-Time Performance" value="96.4%" delta="+1.8 pts" trend="up" icon={Gauge} accent="primary" />
-          <StatCard label="At-Risk Shipments" value="3" delta="1 critical" trend="down" icon={ShieldAlert} accent="warning" />
+          <StatCard
+            label="At-Risk Shipments"
+            value={String(2 + atRisk)}
+            delta={`Risk score ${state.riskScore}`}
+            trend={state.riskScore > 50 ? "down" : "up"}
+            icon={ShieldAlert}
+            accent="warning"
+          />
         </div>
 
         {/* Map + Disruption */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2"><ShipmentMap rerouted={rerouted} /></div>
+          <div className="lg:col-span-2"><ShipmentMap state={state} /></div>
           <div><DisruptionPanel onReroute={setRerouted} /></div>
         </div>
 
@@ -71,7 +89,7 @@ export function Dashboard() {
         </div>
 
         {/* Activity */}
-        <ActivityFeed />
+        <ActivityFeed alerts={alerts} />
 
         <footer className="text-center text-[10px] text-muted-foreground py-4 uppercase tracking-widest">
           CogniChain · Decision Intelligence Engine · v2.0
