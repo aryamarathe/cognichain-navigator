@@ -7,6 +7,9 @@ import { ForecastChart } from "./ForecastChart";
 import { InventoryPanel } from "./InventoryPanel";
 import { ActivityFeed } from "./ActivityFeed";
 import { LogisticsPanel } from "./LogisticsPanel";
+import { SmartInventoryPanel } from "./SmartInventoryPanel";
+import { ForecastPanel } from "./ForecastPanel";
+import { SimulationPanel } from "./SimulationPanel";
 import { useShipmentSimulation } from "@/hooks/useShipmentSimulation";
 
 type View = "Overview" | "Logistics" | "Inventory" | "Forecast" | "Simulation";
@@ -60,6 +63,12 @@ export function Dashboard() {
       <main className="max-w-[1600px] mx-auto px-6 py-6 space-y-6">
         {view === "Logistics" ? (
           <LogisticsPanel liveState={state} />
+        ) : view === "Inventory" ? (
+          <SmartInventoryPanel />
+        ) : view === "Forecast" ? (
+          <ForecastPanel />
+        ) : view === "Simulation" ? (
+          <SimulationPanel />
         ) : (
           <>
             {/* Title */}
