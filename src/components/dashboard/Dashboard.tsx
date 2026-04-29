@@ -19,6 +19,12 @@ export function Dashboard() {
   const [view, setView] = useState<View>("Overview");
   const { state, alerts } = useShipmentSimulation(rerouted);
   const [clock, setClock] = useState("");
+  const [simSeed, setSimSeed] = useState<{ demand: number; note: string } | undefined>(undefined);
+
+  const handleSimulateForecast = (demandPct: number, note: string) => {
+    setSimSeed({ demand: demandPct, note });
+    setView("Simulation");
+  };
   useEffect(() => {
     const update = () => setClock(new Date().toUTCString().slice(17, 25));
     update();
@@ -66,9 +72,9 @@ export function Dashboard() {
         ) : view === "Inventory" ? (
           <SmartInventoryPanel />
         ) : view === "Forecast" ? (
-          <ForecastPanel />
+          <ForecastPanel onSimulate={handleSimulateForecast} />
         ) : view === "Simulation" ? (
-          <SimulationPanel />
+          <SimulationPanel seedDemand={simSeed?.demand} seedNote={simSeed?.note} />
         ) : (
           <>
             {/* Title */}
